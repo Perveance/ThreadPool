@@ -1,7 +1,6 @@
 #ifndef TASK_H
 #define TASK_H
 
-//typedef void (*func_type)();
 typedef void (*func_type)(void *);
 
 class Task
