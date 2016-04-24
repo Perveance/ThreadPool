@@ -16,9 +16,9 @@ void CondVar::signal()
     int ret = pthread_cond_signal(&m_cond_var);
 }
 
-void CondVar::wait(pthread_mutex_t *mutex)
+void CondVar::wait(Mutex *mutex)
 {
-    int ret = pthread_cond_wait(&m_cond_var, mutex);
+    int ret = pthread_cond_wait(&m_cond_var, &mutex->get());
 }
 
 void CondVar::broadcast()

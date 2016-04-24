@@ -1,5 +1,5 @@
 #ifndef MUTEX_H
-#define COND_VAR_H
+#define MUTEX_H
 
 #include <pthread.h>
 
@@ -10,8 +10,9 @@ public:
     ~Mutex();
     void lock();
     void unlock();
+    pthread_mutex_t get() { return mMutex; }
 private:
-    pthread_mutex_t m_mutex;
+    pthread_mutex_t mMutex;
     bool isLocked;
 protected:
 };

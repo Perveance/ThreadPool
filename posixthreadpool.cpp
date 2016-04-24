@@ -10,12 +10,8 @@ void *thread_run_func(void *arg)
     PosixThreadPool* p = dynamic_cast<PosixThreadPool *>(ip);
     std::cout << "pool ptr = " << p << std::endl;
     p->execute_thread();
-    //p->test();
 
     std::cout << "Thread function " << std::endl;
-
-
-    
 
     return NULL;
 }
@@ -54,23 +50,47 @@ int PosixThreadPool::addTask(Task* task)
     return 0;
 }
 
-int PosixThreadPool::test()
-{
-    return 5;
-}
 int PosixThreadPool::execute_thread()
 {
-    //std::cout << "execute_thread is run" << std::endl;
+    while (true) {
+        // First, check if pool is stopped
+        if (mState == STOPPED)
+            break;
+
+        //Deque a task
+        mMutex.lock();
+        std::cout << "mTasks size = " << mTasks.size() << std::endl;
+        while ((mTasks.size() == 0) && mState != STOPPED) {
+            
+            mCondVar.wait(&mMutex);
+        }
+        if (mState == STOPPED) {
+            // Exiting
+            mMutex.unlock();
+            break;
+        }
+
+        Task *t = mTasks.front();
+        mTasks.pop();
+        mMutex.unlock();
+
+        t->execute();
+    }
+    
     return 0;
 }
 
 int PosixThreadPool::joinAll()
 {
+    std::cout << "joinAll ENTER" << std::endl;
+    std::cout << "joinAll before join" << std::endl;
     for (std::vector<int>::size_type i = 0; i != mWorkers.size(); i++) {
         mWorkers[i]->join();
     }
+    std::cout << "joinAll after join, before signal" << std::endl;
 
-    //mCondVar.signal();
+    mCondVar.signal();
+    std::cout << "joinAll after signal" << std::endl;
 
     return 0;
 }

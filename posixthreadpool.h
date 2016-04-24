@@ -17,7 +17,6 @@ public:
     ~PosixThreadPool();
     int addTask(Task* task);
     int execute_thread();
-    int test();
     int joinAll();
 protected:
 private:
