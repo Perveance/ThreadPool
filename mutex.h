@@ -10,7 +10,7 @@ public:
     ~Mutex();
     void lock();
     void unlock();
-    pthread_mutex_t get() { return mMutex; }
+    pthread_mutex_t* get() { return &mMutex; }
 private:
     pthread_mutex_t mMutex;
     bool isLocked;

@@ -27,20 +27,12 @@ PosixThreadPool::PosixThreadPool(int N)
 
 PosixThreadPool::~PosixThreadPool()
 {
-    mMutex.lock();
-    mState = STOPPED;
-    mMutex.unlock();
-
-    mCondVar.broadcast();
-    
-    for (std::vector<int>::size_type i = 0; i != mWorkers.size(); i++ ) {
-        std::cout << "  i = " << i << " " << mWorkers[i] << std::endl;
-        mWorkers[i]->join();
-        delete mWorkers[i];
-        mCondVar.broadcast(); // In case some threads were not waken up
-    }
+    if (mState != STOPPED)
+        joinAll();
 }
 
+/* Add a new task to the pool. If tasks queue is empth, a thread is 
+waken up to execute the job. */
 int PosixThreadPool::addTask(Task* task)
 {
     mMutex.lock();
@@ -60,8 +52,8 @@ int PosixThreadPool::execute_thread()
         //Deque a task
         mMutex.lock();
         std::cout << "mTasks size = " << mTasks.size() << std::endl;
-        while ((mTasks.size() == 0) && mState != STOPPED) {
-            
+        while ((mTasks.size() == 0) && mState != STOPPED) 
+        {
             mCondVar.wait(&mMutex);
         }
         if (mState == STOPPED) {
@@ -82,15 +74,18 @@ int PosixThreadPool::execute_thread()
 
 int PosixThreadPool::joinAll()
 {
-    std::cout << "joinAll ENTER" << std::endl;
-    std::cout << "joinAll before join" << std::endl;
-    for (std::vector<int>::size_type i = 0; i != mWorkers.size(); i++) {
-        mWorkers[i]->join();
-    }
-    std::cout << "joinAll after join, before signal" << std::endl;
+    mMutex.lock();
+    mState = STOPPED;
+    mMutex.unlock();
 
-    mCondVar.signal();
-    std::cout << "joinAll after signal" << std::endl;
+    mCondVar.broadcast();
+    
+    for (std::vector<int>::size_type i = 0; i != mWorkers.size(); i++ ) {
+        std::cout << "  i = " << i << " " << mWorkers[i] << std::endl;
+        mWorkers[i]->join();
+        delete mWorkers[i];
+        mCondVar.broadcast(); // In case some threads were not waken up
+    }
 
     return 0;
 }
