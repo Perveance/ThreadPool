@@ -54,6 +54,7 @@ int PosixThreadPool::execute_thread()
         std::cout << "mTasks size = " << mTasks.size() << std::endl;
         while ((mTasks.size() == 0) && mState != STOPPED) 
         {
+            mEmptyQueueCondVar.signal();
             mCondVar.wait(&mMutex);
         }
         if (mState == STOPPED) {
@@ -72,6 +73,8 @@ int PosixThreadPool::execute_thread()
     return 0;
 }
 
+/* Will stop the ThreadPool and join all workes regardless whether there are more
+   tasks in the queue or not. */
 int PosixThreadPool::joinAll()
 {
     mMutex.lock();
@@ -88,4 +91,15 @@ int PosixThreadPool::joinAll()
     }
 
     return 0;
+}
+
+/* Will wait until task queue empties. */
+int PosixThreadPool::waitAll()
+{
+    mMutex.lock();
+    while (mTasks.size() != 0 && mState != STOPPED)
+    {
+        mEmptyQueueCondVar.wait(&mMutex);
+    }
+    mMutex.unlock();
 }

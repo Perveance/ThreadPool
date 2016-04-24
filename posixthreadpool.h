@@ -18,9 +18,11 @@ public:
     int addTask(Task* task);
     int execute_thread();
     int joinAll();
+    int waitAll();
 protected:
 private:
     CondVar mCondVar;
+    CondVar mEmptyQueueCondVar;
     PoolState mState;
 };
 
